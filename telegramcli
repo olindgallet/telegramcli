@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+# Author: Olin Gallet
+# Date: 11/20/2022
+#
+# The Telegram CLI is a way to send pictures and images through Telegram to
+# a selected chat ID.
+# 
+# telegramcli -t ["Text to Send"]
+# telegramcli -i [Absolute path of image] 
+import telegram
+import sys
+import os
+from plumbum import colors
+
+def display_usage_help():
+    """Displays usage help message and possible parameters for the TelegramCLI.
+    """
+    print(colors.orchid | '[Usage]')
+    print(colors.blue | '  telegramcli -t "text to send"')
+    print(colors.yellow | '  Sends a text message to the channel denoted by the chat ID in the environment variables.')
+    print(colors.yellow | '  HTML decorators <b>, <i>, and <u> are supported.')
+    print(colors.yellow | '  Messages can be up to 4096 characters; any more are truncated.')
+    print()
+    print(colors.blue | '  telegramcli -i "filepath of image to send"')
+    print(colors.yellow | '  Sends an image to the channel denoted by the chat ID in the environment variables.')
+    print(colors.yellow | '  Max image size is 2mb.')
+    print()
+    print(colors.orchid | '[Limits]')
+    print(colors.yellow | '  Max send rate is 20 messages per sec.')
+
+def send_message(message:str):
+    """Sends the message to the Telegram chat.
+
+    :param: message the message to send
+    :type: str
+    """
+    bot = telegram.Bot(token=os.environ['TELEGRAM_TOKEN'])
+    bot.send_message(chat_id=os.environ['TELEGRAM_CHAT_ID'], text=message[0:4095], parse_mode=telegram.ParseMode.HTML)
+
+def send_image(image:str):
+    """Sends the image to the Telegram chat.
+
+    :param: image the location of the image to send
+    :type: str
+    """
+    bot = telegram.Bot(token=os.environ['TELEGRAM_TOKEN'])
+    bot.send_photo(chat_id=os.environ['TELEGRAM_CHAT_ID'], photo=open(image, 'rb'))
+
+if __name__ == '__main__':
+    if len(sys.argv) == 3:
+        if sys.argv[1] == '-t':
+            send_message(sys.argv[2])
+        elif sys.argv[1] == '-i':
+            send_image(sys.argv[2])
+        else:
+            display_usage_help()
+    else:
+        display_usage_help()
